@@ -26,8 +26,10 @@ public:
 		m_ViewportWidth = ImGui::GetContentRegionAvail().x;
 		m_ViewportHeight = ImGui::GetContentRegionAvail().y;
 
-		if (m_Image)
-			ImGui::Image(m_Image->GetDescriptorSet(), { (float)m_Image->GetWidth(),(float)m_Image->GetHeight() });
+		auto finalImage = m_Renderer.GetFinalImage();
+		if (m_Renderer.GetFinalImage())
+			ImGui::Image(finalImage->GetDescriptorSet(), { (float)finalImage->GetWidth(),(float)finalImage->GetHeight() },
+				ImVec2(0, 1), ImVec2(1, 0));
 
 		ImGui::End();
 		ImGui::PopStyleVar();
