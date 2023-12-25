@@ -45,38 +45,46 @@ std::shared_ptr<Walnut::Image> Renderer::GetFinalImage() {
 }
 
 glm::vec4 Renderer::TraceRay(const Scene& scene, const Ray& ray) {
-
 	if (scene.Spheres.size() == 0)return glm::vec4(0, 0, 0, 1);
-	const Sphere& sphere = scene.Spheres[0];
 
-	glm::vec3 rayOrigin = ray.Origin - glm::vec3(-0.5f, 0.0f, 0.0f);
+	const Sphere* closestSphere = nullptr;
+	float hitDistance = FLT_MAX;
 	const glm::vec3& rayDirection = ray.Direction;
-	float radius = 0.5f;
-	// (bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0 ， 二维直线与球相交
-	// a为直线（光线）originPos
-	// b为光线direction
-	// r为球半径
-	// t为光线与球的相交参数(hit distance)
+	for (const Sphere& sphere : scene.Spheres) {
+		glm::vec3 rayOrigin = ray.Origin - sphere.Position;
+		// (bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0 ， 二维直线与球相交
+		// a为直线（光线）originPos
+		// b为光线direction
+		// r为球半径
+		// t为光线与球的相交参数(hit distance)
 
-	float p1 = glm::dot(rayDirection, rayDirection);
-	float p2 = 2.0f * glm::dot(rayOrigin, rayDirection);
-	float p3 = glm::dot(rayOrigin, rayOrigin) - radius * radius;
+		float p1 = glm::dot(rayDirection, rayDirection);
+		float p2 = 2.0f * glm::dot(rayOrigin, rayDirection);
+		float p3 = glm::dot(rayOrigin, rayOrigin) - sphere.radius * sphere.radius;
 
-	//p2^2 - p1*p3
-	//根为(-p2 +- sqrt(discriminant))/2p1
-	float discriminant = p2 * p2 - 4.0f * p1 * p3;
-	if (discriminant < 0.0f)return glm::vec4(0, 0, 0, 1);
+		//p2^2 - p1*p3
+		//根为(-p2 +- sqrt(discriminant))/2p1
+		float discriminant = p2 * p2 - 4.0f * p1 * p3;
+		if (discriminant < 0.0f)continue;
 
-	float t0 = (-p2 + glm::sqrt(discriminant)) / (2.0f * p1);
-	float closedT = (-p2 - glm::sqrt(discriminant)) / (2.0f * p1);
+		float t0 = (-p2 + glm::sqrt(discriminant)) / (2.0f * p1);
+		float closedT = (-p2 - glm::sqrt(discriminant)) / (2.0f * p1);
+		if (closedT < hitDistance) {
+			hitDistance = closedT;
+			closestSphere = &sphere;
+		}
+	}
+	if (closestSphere == nullptr) return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-	glm::vec3 hitPoint = rayOrigin + rayDirection * closedT;
+	glm::vec3 rayOrigin = ray.Origin - closestSphere->Position;
+
+	glm::vec3 hitPoint = rayOrigin + rayDirection * hitDistance;
 	glm::vec3 normal = glm::normalize(hitPoint);
 	glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
 
 	float d = glm::max(glm::dot(normal, -lightDir), 0.0f);
 
-	glm::vec3 sphereColor = sphere.Albedo;
+	glm::vec3 sphereColor = closestSphere->Albedo;
 	sphereColor *= d;
 	return glm::vec4(sphereColor, 1.0f);
 }
