@@ -25,6 +25,8 @@ void Renderer::OnResize(const uint32_t& width, const uint32_t& height) {
 }
 
 void Renderer::Render(const Scene& scene, const Camera& camera) {
+	m_ActiveScene = &scene;
+	m_ActiveCamera = &camera;
 	Ray ray;
 	ray.Origin = camera.GetPosition();
 
@@ -32,7 +34,7 @@ void Renderer::Render(const Scene& scene, const Camera& camera) {
 		for (uint32_t x = 0; x < m_FinalImage->GetWidth(); x++) {
 			ray.Direction = camera.GetRayDirections()[x + y * m_FinalImage->GetWidth()];
 
-			glm::vec4 color = TraceRay(scene, ray);
+			glm::vec4 color = PerPixel();
 			color = glm::clamp(color, glm::vec4(0.0f), glm::vec4(1.0f));
 			m_ImageData[x + y * m_FinalImage->GetWidth()] = Utils::ConvertToRGBA(color);
 		}
@@ -44,7 +46,7 @@ std::shared_ptr<Walnut::Image> Renderer::GetFinalImage() {
 	return m_FinalImage;
 }
 
-glm::vec4 Renderer::TraceRay(const Scene& scene, const Ray& ray) {
+Renderer::HitPayload Renderer::TraceRay(const Scene& scene, const Ray& ray) {
 	if (scene.Spheres.size() == 0)return glm::vec4(0, 0, 0, 1);
 
 	const Sphere* closestSphere = nullptr;
@@ -87,4 +89,19 @@ glm::vec4 Renderer::TraceRay(const Scene& scene, const Ray& ray) {
 	glm::vec3 sphereColor = closestSphere->Albedo;
 	sphereColor *= d;
 	return glm::vec4(sphereColor, 1.0f);
+}
+
+glm::vec4 Renderer::PerPixel(const Ray& ray)
+{
+	return HitPayload();
+}
+
+Renderer::HitPayload Renderer::ClosestHit(const Ray& ray, float hitDistance, uint32_t objectIndex)
+{
+	return HitPayload();
+}
+
+Renderer::HitPayload Renderer::Miss(const Ray& ray)
+{
+	return HitPayload();
 }
