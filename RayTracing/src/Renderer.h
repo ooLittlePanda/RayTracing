@@ -23,11 +23,11 @@ private:
 		glm::vec3 WorldPosition;
 		glm::vec3 WorldNormal;
 
-		uint32_t ObjectIndex;
+		int ObjectIndex;
 	};
 
-	glm::vec4 PerPixel(const Ray& ray);
-	HitPayload TraceRay(const Scene& scene, const Ray& ray);
-	HitPayload ClosestHit(const Ray& ray, float hitDistance, uint32_t objectIndex);
+	glm::vec4 PerPixel(const uint32_t& x,const uint32_t& y);
+	HitPayload TraceRay(const Ray& ray);
+	HitPayload ClosestHit(const Ray& ray, float hitDistance, int objectIndex);
 	HitPayload Miss(const Ray& ray);
 };
